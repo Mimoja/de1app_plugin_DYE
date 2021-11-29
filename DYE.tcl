@@ -2665,10 +2665,37 @@ proc ::dui::pages::DYE::process_profile_select_dialog { {filename {}} {title {}}
 	}
 }
 
+proc ::dui::pages::DYE::process_recently_shared {} {
+	variable data
+	set page ::dui::pages::dye_visualizer_dlg
+	dui item hide $page last_shared -current yes -initial yes
+	set recently_shared [::plugins::visualizer_upload::download {} download_all_last_shared]
+
+	if {$recently_shared ne {}} {
+		set recently_shared [dict get $recently_shared list]
+		#set w [dui item get_widget dye_visualizer_dlg* last_shared]
+		#$w delete 0 end
+		foreach shot $recently_shared {
+			set title [dict get $shot profile_title]
+			set id [dict get $shot id]
+			set bean [dict get $shot bean_type]
+			set entry "$title for $bean ([string range $id 0 5])"
+			#$w insert end $entry
+			msg $entry
+		}
+
+		dui item hide $page last_shared -current no 
+	}
+	set data(recently_shared) $recently_shared
+}
+
+
 proc ::dui::pages::DYE::visualizer_dialog {} {
 	variable data
 	dui sound make sound_button_in
 	
+	after 0 [namespace current]::process_recently_shared
+
 	save_description
 	set repo_link {}
 	if { $data(repository_links) ne {} } {
